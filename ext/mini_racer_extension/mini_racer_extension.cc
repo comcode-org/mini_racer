@@ -959,7 +959,7 @@ static VALUE rb_isolate_pump_message_loop(VALUE self) {
 }
 
 static void NoRubyErrorConstructor(const FunctionCallbackInfo<Value>& args) {
-    args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal("This class may not be constructed from JS!")));
+    args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal("This class may not be constructed from JS.")));
 }
 
 static VALUE rb_context_init_unsafe(VALUE self, VALUE isolate, VALUE snap) {
@@ -1004,7 +1004,7 @@ static VALUE rb_context_init_unsafe(VALUE self, VALUE isolate, VALUE snap) {
         /* Create `RubyError` constructor + prototype (and steal `Error.captureStackTrace` while we're at it)
          * equivalent JS code is roughly
          * ```
-         * function RubyError() { throw new Error("This class may not be constructed from JS!") }
+         * function RubyError() { throw new Error("This class may not be constructed from JS.") }
          * RubyError.prototype = Object.create(Error.prototype);
          * RubyError.prototype.name = "RubyError";
          * RubyError.prototype.constructor = RubyError;
