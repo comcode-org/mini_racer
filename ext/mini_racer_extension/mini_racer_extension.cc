@@ -1573,6 +1573,8 @@ static VALUE allocate(VALUE klass) {
     ContextInfo* context_info = ALLOC(ContextInfo);
     context_info->isolate_info = NULL;
     context_info->context = NULL;
+    new (&context_info->ruby_error_prototype) Global<ObjectTemplate>();
+    new (&context_info->capture_stack_trace) Global<Function>();
 
     return Data_Wrap_Struct(klass, mark_context, deallocate, (void*)context_info);
 }
