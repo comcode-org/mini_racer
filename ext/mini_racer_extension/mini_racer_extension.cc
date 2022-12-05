@@ -959,7 +959,7 @@ static VALUE rb_isolate_pump_message_loop(VALUE self) {
 }
 
 static void NoRubyErrorConstructor(const FunctionCallbackInfo<Value>& args) {
-    args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal("This class may not be constructed from JS.")));
+    args.GetIsolate()->ThrowException(v8::Exception::Error(String::NewFromUtf8Literal(args.GetIsolate(), "This class may not be constructed from JS.")));
 }
 
 static VALUE rb_context_init_unsafe(VALUE self, VALUE isolate, VALUE snap) {
