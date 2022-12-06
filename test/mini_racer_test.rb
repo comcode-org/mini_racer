@@ -868,8 +868,14 @@ raise FooError, "I like foos"
     error_message = "Actual Error Message"
     context.attach("a", proc{|a| raise error_message})
 
-    assert_equal "RubyError: Actual Error Message
+    assert_equal "RubyError: #{error_message}
     at <anonymous>:1:7", context.eval("try { a(); } catch (e) { e.stack }")
+  end
+
+  def test_cant_instantiate_ruby_error
+    context = MiniRacer::Context.new()
+
+    assert_equal "This class may not be constructed from JS.", context.eval("try { RubyError(); } catch (e) { e.message }")
   end
 
   def test_symbol_support
