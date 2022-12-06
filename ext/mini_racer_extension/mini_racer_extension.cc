@@ -1021,7 +1021,7 @@ static VALUE rb_context_init_unsafe(VALUE self, VALUE isolate, VALUE snap) {
             ->Get(context, String::NewFromUtf8Literal(isolate_info->isolate, "prototype"))
             .ToLocalChecked();
 
-        Local<Object> rubyErrorProto = Object::New(isolate_info->isolate, errorPrototype, nullptr, nullptr, (size_t) 0);
+        Local<Object> rubyErrorProto = Object::New(isolate_info->isolate, errorPrototype, nullptr, nullptr, 0);
         rubyErrorProto->Set(context, String::NewFromUtf8Literal(isolate_info->isolate, "name"), strClassName).Check();
 
         Local<FunctionTemplate> rubyErrorConstructorTemplate = FunctionTemplate::New(isolate_info->isolate, NoRubyErrorConstructor);
