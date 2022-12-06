@@ -1001,15 +1001,14 @@ static VALUE rb_context_init_unsafe(VALUE self, VALUE isolate, VALUE snap) {
 
         Local<String> strClassName = String::NewFromUtf8Literal(isolate_info->isolate, "RubyError");
 
-        /* Create `RubyError` constructor + prototype (and steal `Error.captureStackTrace` while we're at it)
-         * equivalent JS code is roughly
-         * ```
-         * function RubyError() { throw new Error("This class may not be constructed from JS.") }
-         * RubyError.prototype = Object.create(Error.prototype);
-         * RubyError.prototype.name = "RubyError";
-         * RubyError.prototype.constructor = RubyError;
-         * ```
-         */
+        // Create `RubyError` constructor + prototype (and steal `Error.captureStackTrace` while we're at it)
+        //  equivalent JS code is roughly
+        //  ```
+        //  function RubyError() { throw new Error("This class may not be constructed from JS.") }
+        //  RubyError.prototype = Object.create(Error.prototype);
+        //  RubyError.prototype.name = "RubyError";
+        //  RubyError.prototype.constructor = RubyError;
+        //  ```
         Local<Object> global = context->Global();
         Local<Object> errorConstructor = global
             ->Get(context, String::NewFromUtf8Literal(isolate_info->isolate, "Error"))
@@ -1243,7 +1242,6 @@ static void throw_ruby_error(Isolate* isolate, ContextInfo* context_info, VALUE 
 	Local<Context> context = context_info->context->Get(isolate);
 	if(!errorTemplate->NewInstance(context).ToLocal(&errorInstance))
 		return;
-	/* TODO: Is this cast sane? */
 	errorInstance->SetInternalField(0, External::New(isolate, (void*) rb_error));
 	if(errorInstance->SetPrototype(context, context_info->ruby_error_prototype.Get(isolate)).IsNothing())
 		return;
@@ -1321,7 +1319,8 @@ gvl_ruby_callback(void* data) {
             (VALUE(*)(...))&rescue_callback, (VALUE)(&callback_data), rb_eException, (VALUE)0);
 
     if(callback_data.failed) {
-        /* TODO: Use the v8 exception as a data storage instead */
+        // NOTE: Still using a single exception holder here which will only store the first 
+        //  exception thrown. To fix this the v8 exception could be used as data storage instead
         rb_iv_set(parent, "@current_exception", result);
         throw_ruby_error(args->GetIsolate(), context_info, result);
     }
