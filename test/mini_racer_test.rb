@@ -863,10 +863,12 @@ raise FooError, "I like foos"
     end
   end
 
+  class CustomError < StandardError; end
+  
   def test_capture_ruby_exception_message
     context = MiniRacer::Context.new()
     error_message = "Actual Error Message"
-    context.attach("a", proc{|a| raise error_message})
+    context.attach("a", proc{|a| raise CustomError, error_message})
 
     assert_equal "RubyError: #{error_message}
     at <anonymous>:1:7", context.eval("try { a(); } catch (e) { e.stack }")
