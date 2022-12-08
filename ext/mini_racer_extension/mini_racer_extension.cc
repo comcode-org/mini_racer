@@ -309,9 +309,9 @@ static VALUE rb_platform_set_flag_as_str(VALUE _klass, VALUE flag_as_str) {
     platform_lock.lock();
 
     if (current_platform == NULL) {
-	if (!strcmp(RSTRING_PTR(flag_as_str), "--single_threaded")) {
-	   single_threaded = true;
-	}
+        if (!strcmp(RSTRING_PTR(flag_as_str), "--single_threaded")) {
+            single_threaded = true;
+        }
         V8::SetFlagsFromString(RSTRING_PTR(flag_as_str), (int)RSTRING_LEN(flag_as_str));
     } else {
         platform_already_initialized = true;
@@ -619,25 +619,25 @@ static VALUE convert_v8_to_ruby(Isolate* isolate, Local<Context> context,
     }
 
     if (value->IsSymbol()) {
-	v8::String::Utf8Value symbol_name(isolate,
-	    Local<Symbol>::Cast(value)->Name());
+        v8::String::Utf8Value symbol_name(isolate,
+            Local<Symbol>::Cast(value)->Name());
 
-	VALUE str_symbol = rb_enc_str_new(
-	    *symbol_name,
-	    symbol_name.length(),
-	    rb_enc_find("utf-8")
-	);
+        VALUE str_symbol = rb_enc_str_new(
+            *symbol_name,
+            symbol_name.length(),
+            rb_enc_find("utf-8")
+        );
 
-	return rb_str_intern(str_symbol);
+        return rb_str_intern(str_symbol);
     }
 
     MaybeLocal<String> rstr_maybe = value->ToString(context);
 
     if (rstr_maybe.IsEmpty()) {
-	return Qnil;
+        return Qnil;
     } else {
-	Local<String> rstr = rstr_maybe.ToLocalChecked();
-	return rb_enc_str_new(*String::Utf8Value(isolate, rstr), rstr->Utf8Length(isolate), rb_enc_find("utf-8"));
+        Local<String> rstr = rstr_maybe.ToLocalChecked();
+        return rb_enc_str_new(*String::Utf8Value(isolate, rstr), rstr->Utf8Length(isolate), rb_enc_find("utf-8"));
     }
 }
 
@@ -680,35 +680,35 @@ static Local<Value> convert_ruby_to_v8(Isolate* isolate, Local<Context> context,
         }
         return scope.Escape(Integer::New(isolate, (int)fixnum));
     case T_FLOAT:
-	return scope.Escape(Number::New(isolate, NUM2DBL(value)));
+        return scope.Escape(Number::New(isolate, NUM2DBL(value)));
     case T_STRING:
-	return scope.Escape(String::NewFromUtf8(isolate, RSTRING_PTR(value), NewStringType::kNormal, (int)RSTRING_LEN(value)).ToLocalChecked());
+        return scope.Escape(String::NewFromUtf8(isolate, RSTRING_PTR(value), NewStringType::kNormal, (int)RSTRING_LEN(value)).ToLocalChecked());
     case T_NIL:
-	return scope.Escape(Null(isolate));
+        return scope.Escape(Null(isolate));
     case T_TRUE:
-	return scope.Escape(True(isolate));
+        return scope.Escape(True(isolate));
     case T_FALSE:
-	return scope.Escape(False(isolate));
+        return scope.Escape(False(isolate));
     case T_ARRAY:
-	length = RARRAY_LEN(value);
-	array = Array::New(isolate, (int)length);
-	for(i=0; i<length; i++) {
-            array->Set(context, i, convert_ruby_to_v8(isolate, context, rb_ary_entry(value, i)));
-	}
-	return scope.Escape(array);
+        length = RARRAY_LEN(value);
+        array = Array::New(isolate, (int)length);
+        for(i=0; i<length; i++) {
+                array->Set(context, i, convert_ruby_to_v8(isolate, context, rb_ary_entry(value, i)));
+        }
+        return scope.Escape(array);
     case T_HASH:
-	object = Object::New(isolate);
-	hash_as_array = rb_funcall(value, rb_intern("to_a"), 0);
-	length = RARRAY_LEN(hash_as_array);
-	for(i=0; i<length; i++) {
-	    pair = rb_ary_entry(hash_as_array, i);
-            object->Set(context, convert_ruby_to_v8(isolate, context, rb_ary_entry(pair, 0)),
-                  convert_ruby_to_v8(isolate, context, rb_ary_entry(pair, 1)));
-	}
-	return scope.Escape(object);
+        object = Object::New(isolate);
+        hash_as_array = rb_funcall(value, rb_intern("to_a"), 0);
+        length = RARRAY_LEN(hash_as_array);
+        for(i=0; i<length; i++) {
+            pair = rb_ary_entry(hash_as_array, i);
+                object->Set(context, convert_ruby_to_v8(isolate, context, rb_ary_entry(pair, 0)),
+                    convert_ruby_to_v8(isolate, context, rb_ary_entry(pair, 1)));
+        }
+        return scope.Escape(object);
     case T_SYMBOL:
-	value = rb_funcall(value, rb_intern("to_s"), 0);
-	return scope.Escape(String::NewFromUtf8(isolate, RSTRING_PTR(value), NewStringType::kNormal, (int)RSTRING_LEN(value)).ToLocalChecked());
+        value = rb_funcall(value, rb_intern("to_s"), 0);
+        return scope.Escape(String::NewFromUtf8(isolate, RSTRING_PTR(value), NewStringType::kNormal, (int)RSTRING_LEN(value)).ToLocalChecked());
     case T_DATA:
         klass = rb_funcall(value, rb_intern("class"), 0);
         if (klass == rb_cTime || klass == rb_cDateTime)
@@ -734,7 +734,7 @@ static Local<Value> convert_ruby_to_v8(Isolate* isolate, Local<Context> context,
     default:
       return scope.Escape(String::NewFromUtf8Literal(isolate, "Undefined Conversion"));
     }
-    }
+}
 
 static void unblock_eval(void *ptr) {
     EvalParams* eval = (EvalParams*)ptr;
@@ -945,9 +945,9 @@ static VALUE rb_isolate_pump_message_loop(VALUE self) {
     if (current_platform == NULL) return Qfalse;
 
     if (platform::PumpMessageLoop(current_platform.get(), isolate_info->isolate)){
-	return Qtrue;
+        return Qtrue;
     } else {
-	return Qfalse;
+        return Qfalse;
     }
 }
 
@@ -1227,20 +1227,20 @@ VALUE rescue_callback(VALUE rdata, VALUE exception) {
 
 static void throw_ruby_error(Isolate* isolate, ContextInfo* context_info, VALUE rb_error) {
     VALUE message = rb_funcall(rb_error, rb_intern("message"), 0);
-	HandleScope scope { isolate };
+    HandleScope scope { isolate };
 
-	Local<Object> errorInstance = Object::New(isolate, context_info->ruby_error_prototype.Get(isolate), nullptr, nullptr, 0);
-	Local<Context> context = context_info->context->Get(isolate);
-	Local<String> v8Message;
-	if(!String::NewFromUtf8(isolate, RSTRING_PTR(message), NewStringType::kNormal, RSTRING_LENINT(message)).ToLocal(&v8Message))
-		v8Message = String::NewFromUtf8(isolate, "(( exception message was too long, dropped ))").ToLocalChecked();
-	if(errorInstance->Set(context, String::NewFromUtf8(isolate, "message").ToLocalChecked(), v8Message).IsNothing())
-		return;
-	Local<Value> captureTarget = errorInstance;
-	if(context_info->capture_stack_trace.Get(isolate)->Call(context, v8::Undefined(isolate), 1, &captureTarget).IsEmpty())
-		return;
+    Local<Object> errorInstance = Object::New(isolate, context_info->ruby_error_prototype.Get(isolate), nullptr, nullptr, 0);
+    Local<Context> context = context_info->context->Get(isolate);
+    Local<String> v8Message;
+    if(!String::NewFromUtf8(isolate, RSTRING_PTR(message), NewStringType::kNormal, RSTRING_LENINT(message)).ToLocal(&v8Message))
+        v8Message = String::NewFromUtf8(isolate, "(( exception message was too long, dropped ))").ToLocalChecked();
+    if(errorInstance->Set(context, String::NewFromUtf8(isolate, "message").ToLocalChecked(), v8Message).IsNothing())
+        return;
+    Local<Value> captureTarget = errorInstance;
+    if(context_info->capture_stack_trace.Get(isolate)->Call(context, v8::Undefined(isolate), 1, &captureTarget).IsEmpty())
+        return;
 
-	isolate->ThrowException(errorInstance);
+    isolate->ThrowException(errorInstance);
 }
 
 void*
@@ -1450,11 +1450,11 @@ IsolateInfo::~IsolateInfo() {
                                 "it can not be disposed and "
                                 "memory will not be reclaimed "
                                 "till the Ruby process exits.\n"
-				"It is VERY likely your process will hang.\n"
-				"If you wish to use v8 in forked environment "
-				"please ensure the platform is initialized with:\n"
-				"MiniRacer::Platform.set_flags! :single_threaded\n"
-				);
+                                "It is VERY likely your process will hang.\n"
+                                "If you wish to use v8 in forked environment "
+                                "please ensure the platform is initialized with:\n"
+                                "MiniRacer::Platform.set_flags! :single_threaded\n"
+                );
             } else {
                 isolate->Dispose();
             }
@@ -1916,7 +1916,7 @@ extern "C" {
         rb_define_method(rb_cContext, "stop", (VALUE(*)(...))&rb_context_stop, 0);
         rb_define_method(rb_cContext, "dispose_unsafe", (VALUE(*)(...))&rb_context_dispose, 0);
         rb_define_method(rb_cContext, "heap_stats", (VALUE(*)(...))&rb_heap_stats, 0);
-	rb_define_method(rb_cContext, "write_heap_snapshot_unsafe", (VALUE(*)(...))&rb_heap_snapshot, 1);
+        rb_define_method(rb_cContext, "write_heap_snapshot_unsafe", (VALUE(*)(...))&rb_heap_snapshot, 1);
 
         rb_define_private_method(rb_cContext, "create_isolate_value",(VALUE(*)(...))&rb_context_create_isolate_value, 0);
         rb_define_private_method(rb_cContext, "eval_unsafe",(VALUE(*)(...))&rb_context_eval_unsafe, 2);
