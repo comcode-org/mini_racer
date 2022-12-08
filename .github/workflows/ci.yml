@@ -75,10 +75,10 @@ jobs:
           - "3.1"
         platform:
           - "amd64"
-          - "arm64"
+#           - "arm64"
         libc:
           - "gnu"
-          - "musl"
+#           - "musl"
         exclude:
           # there's no libv8-node (v16) for aarch64-linux-musl at the moment
           - platform: "arm64"
