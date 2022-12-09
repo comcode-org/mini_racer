@@ -34,14 +34,15 @@ jobs:
           - '3.0'
         platform:
           - amd64
-          - arm64
+#           - arm64
           # arm
           # ppc64le
           # s390x
         libc:
           - gnu
-          - musl
-    name: Test (linux)
+#           - musl
+
+    name: linux-${{ matrix.platform }} - ruby-${{ matrix.ruby }} - ${{ matrix.libc }}
     runs-on: ubuntu-20.04
     steps:
       - name: Enable ${{ matrix.platform }} platform
