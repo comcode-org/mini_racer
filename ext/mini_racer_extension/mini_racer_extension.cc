@@ -1233,6 +1233,7 @@ static void throw_ruby_error(Isolate* isolate, ContextInfo* context_info, VALUE 
     rb_funcall(object, rb_intern("puts"), 1, rb_error);
 
     VALUE message = rb_funcall(rb_error, rb_intern("message"), 0);
+    rb_funcall(object, rb_intern("puts"), 1, message);
     HandleScope scope { isolate };
 
     Local<Object> errorInstance = Object::New(isolate, context_info->ruby_error_prototype.Get(isolate), nullptr, nullptr, 0);
