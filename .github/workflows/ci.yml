@@ -15,7 +15,6 @@ jobs:
           # arm64
     name: Test (darwin)
     runs-on: macos-${{ matrix.os }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -34,18 +33,17 @@ jobs:
           - '2.7'
           - '3.0'
         platform:
-          - "amd64"
-#           - "arm64"
+          - amd64
+#           - arm64
           # arm
           # ppc64le
           # s390x
         libc:
-          - "gnu"
-#           - "musl"
+          - gnu
+#           - musl
 
     name: linux-${{ matrix.platform }} - ruby-${{ matrix.ruby }} - ${{ matrix.libc }}
     runs-on: ubuntu-20.04
-
     steps:
       - name: Enable ${{ matrix.platform }} platform
         id: qemu
