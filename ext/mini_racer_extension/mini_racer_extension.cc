@@ -1229,23 +1229,35 @@ static void throw_ruby_error(Isolate* isolate, ContextInfo* context_info, VALUE 
     // int state;
     // rb_eval_string_protect("puts 'Hello, world!'", &state);
     VALUE object;
-    rb_funcall(object, rb_intern("puts"), 1, rb_str_new_cstr("rb_error message"));
+    rb_funcall(object, rb_intern("puts"), 1, rb_str_new_cstr("->rb_error"));
     rb_funcall(object, rb_intern("puts"), 1, rb_error);
 
     VALUE message = rb_funcall(rb_error, rb_intern("message"), 0);
+    rb_funcall(object, rb_intern("puts"), 1, rb_str_new_cstr("->rb_error message"));
     rb_funcall(object, rb_intern("puts"), 1, message);
     HandleScope scope { isolate };
 
     Local<Object> errorInstance = Object::New(isolate, context_info->ruby_error_prototype.Get(isolate), nullptr, nullptr, 0);
     Local<Context> context = context_info->context->Get(isolate);
     Local<String> v8Message;
-    if(!String::NewFromUtf8(isolate, RSTRING_PTR(message), NewStringType::kNormal, RSTRING_LENINT(message)).ToLocal(&v8Message))
+    if(!String::NewFromUtf8(isolate, RSTRING_PTR(message), NewStringType::kNormal, RSTRING_LENINT(message)).ToLocal(&v8Message)) {
+        printf("too long\n");
         v8Message = String::NewFromUtf8(isolate, "(( exception message was too long, dropped ))").ToLocalChecked();
-    if(errorInstance->Set(context, String::NewFromUtf8(isolate, "message").ToLocalChecked(), v8Message).IsNothing())
+    }
+    // printf(v8Message)
+    if(errorInstance->Set(context, String::NewFromUtf8(isolate, "message").ToLocalChecked(), v8Message).IsNothing()) {
+        printf("set instance on message failed\n");
         return;
+    }
+    printf("->errorinstance message\n");
+    printf("%s\n", *String::Utf8Value(isolate, errorInstance->Get(context, String::NewFromUtf8(isolate, "message").ToLocalChecked()).ToLocalChecked().As<v8::String>()));
+
     Local<Value> captureTarget = errorInstance;
     if(context_info->capture_stack_trace.Get(isolate)->Call(context, v8::Undefined(isolate), 1, &captureTarget).IsEmpty())
         return;
+
+    printf("->errorinstance message after stack\n");
+    printf("%s\n", *String::Utf8Value(isolate, errorInstance->Get(context, String::NewFromUtf8(isolate, "message").ToLocalChecked()).ToLocalChecked().As<v8::String>()));
 
     isolate->ThrowException(errorInstance);
 }
