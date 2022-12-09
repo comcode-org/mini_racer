@@ -1247,7 +1247,7 @@ static void throw_ruby_error(Isolate* isolate, ContextInfo* context_info, VALUE 
     printf("->v8Message\n");
     printf("%s\n", *String::Utf8Value(isolate, v8Message));
     
-    if(errorInstance->Set(context, String::NewFromUtf8(isolate, "message").ToLocalChecked(), v8Message).IsNothing()) {
+    if(errorInstance->CreateDataProperty(context, String::NewFromUtf8Literal(isolate, "message").As<Name>(), v8Message).IsNothing()) {
         printf("set instance on message failed\n");
         return;
     }
