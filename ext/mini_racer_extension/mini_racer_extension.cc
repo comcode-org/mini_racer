@@ -1226,8 +1226,11 @@ VALUE rescue_callback(VALUE rdata, VALUE exception) {
 }
 
 static void throw_ruby_error(Isolate* isolate, ContextInfo* context_info, VALUE rb_error) {
-    int state;
-    rb_eval_string_protect("puts 'Hello, world!'", &state);
+    // int state;
+    // rb_eval_string_protect("puts 'Hello, world!'", &state);
+    VALUE object;
+    rb_funcall(object, rb_intern("puts"), 1, rb_str_new_cstr("rb_error message"));
+    rb_funcall(object, rb_intern("puts"), 1, rb_error);
 
     VALUE message = rb_funcall(rb_error, rb_intern("message"), 0);
     HandleScope scope { isolate };
