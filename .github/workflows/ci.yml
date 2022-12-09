@@ -1,4 +1,4 @@
-name: Tests
+name: Test
 
 on:
   pull_request:
@@ -7,35 +7,6 @@ on:
       - master
 
 jobs:
-#  test-truffleruby:
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        os:
-#          - "macos-11"
-#          - "macos-12"
-#          - "ubuntu-20.04"
-#        ruby:
-#          - "truffleruby+graalvm-head"
-
-#    name: ${{ matrix.os }} - ${{ matrix.ruby }}
-#    runs-on: ${{ matrix.os }}
-
-#    env:
-#      TRUFFLERUBYOPT: "--jvm --polyglot"
-
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: ruby/setup-ruby@v1
-#        with:
-#          ruby-version: ${{ matrix.ruby }}
-#          bundler-cache: true
-#      - name: Install GraalVM JS component
-#        run: gu install js
-#      - name: Compile
-#        run: bundle exec rake compile
-#      - name: Test
-#        run: bundle exec rake test
 
   test-darwin:
     strategy:
@@ -48,7 +19,6 @@ jobs:
           - "ruby-2.6"
           - "ruby-2.7"
           - "ruby-3.0"
-          - "ruby-3.1"
 
     name: ${{ matrix.os }} - ${{ matrix.ruby }}
     runs-on: ${{ matrix.os }}
@@ -72,7 +42,6 @@ jobs:
           - "2.6"
           - "2.7"
           - "3.0"
-          - "3.1"
         platform:
           - "amd64"
 #           - "arm64"
