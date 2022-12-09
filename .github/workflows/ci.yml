@@ -1,57 +1,47 @@
 name: Test
-
 on:
-  pull_request:
-  push:
-    branches:
-      - master
+  - push
 
 jobs:
-
   test-darwin:
     strategy:
       fail-fast: false
       matrix:
         os:
-          - "macos-11"
-          - "macos-12"
-        ruby:
-          - "ruby-2.6"
-          - "ruby-2.7"
-          - "ruby-3.0"
-
-    name: ${{ matrix.os }} - ${{ matrix.ruby }}
-    runs-on: ${{ matrix.os }}
+          - '10.15'
+          - '11.0'
+        platform:
+          - x86_64
+          # arm64
+    name: Test (darwin)
+    runs-on: macos-${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Bundle
+        run: bundle install
       - name: Compile
         run: bundle exec rake compile
       - name: Test
         run: bundle exec rake test
-
   test-linux:
     strategy:
       fail-fast: false
       matrix:
         ruby:
-          - "2.6"
-          - "2.7"
-          - "3.0"
+          - '2.6'
+          - '2.7'
+          - '3.0'
         platform:
           - "amd64"
 #           - "arm64"
+          # arm
+          # ppc64le
+          # s390x
         libc:
           - "gnu"
 #           - "musl"
-        exclude:
-          # there's no libv8-node (v16) for aarch64-linux-musl at the moment
-          - platform: "arm64"
-            libc: "musl"
 
     name: linux-${{ matrix.platform }} - ruby-${{ matrix.ruby }} - ${{ matrix.libc }}
     runs-on: ubuntu-20.04
@@ -80,11 +70,9 @@ jobs:
           echo "::set-output name=id::$(cat container_id)"
       - name: Install Alpine system dependencies
         if: ${{ matrix.libc == 'musl' }}
-        run: docker exec -w "${PWD}" ${{ steps.container.outputs.id }} apk add --no-cache build-base bash git
+        run: docker exec -w "${PWD}" ${{ steps.container.outputs.id }} apk add --no-cache build-base linux-headers bash python2 python3 git curl tar clang binutils-gold
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Update Rubygems
-        run: docker exec -w "${PWD}" ${{ steps.container.outputs.id }} gem update --system
+        uses: actions/checkout@v2
       - name: Bundle
         run: docker exec -w "${PWD}" ${{ steps.container.outputs.id }} bundle install
       - name: Compile
