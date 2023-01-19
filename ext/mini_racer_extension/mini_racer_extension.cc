@@ -1234,7 +1234,7 @@ static void throw_ruby_error(Isolate* isolate, ContextInfo* context_info, VALUE 
     Local<String> v8Message;
     if(!String::NewFromUtf8(isolate, RSTRING_PTR(message), NewStringType::kNormal, RSTRING_LENINT(message)).ToLocal(&v8Message))
         v8Message = String::NewFromUtf8(isolate, "(( exception message was too long, dropped ))").ToLocalChecked();
-    if(errorInstance->CreateDataProperty(context, String::NewFromUtf8Literal(isolate, "message").As<Name>(), v8Message).IsNothing())
+    if(errorInstance->CreateDataProperty(context, String::NewFromUtf8Literal(isolate, "message"), v8Message).IsNothing())
         return;
     Local<Value> captureTarget = errorInstance;
     if(context_info->capture_stack_trace.Get(isolate)->Call(context, v8::Undefined(isolate), 1, &captureTarget).IsEmpty())
