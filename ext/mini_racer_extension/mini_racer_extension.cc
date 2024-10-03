@@ -11,6 +11,7 @@
 #include <mutex>
 #include <atomic>
 #include <math.h>
+#include <cassert>
 
 using namespace v8;
 
@@ -98,6 +99,8 @@ typedef struct {
     Persistent<Context>* context;
     Global<Object> ruby_error_prototype;
     Global<Function> capture_stack_trace;
+    std::atomic<unsigned long> cpu_nanos;
+    struct timespec cpu_time_reference;
 } ContextInfo;
 
 typedef struct {
@@ -504,6 +507,10 @@ nogvl_context_eval(void* arg) {
         if (eval_params->marshal_stackdepth > 0) {
             StackCounter::SetMax(isolate, eval_params->marshal_stackdepth);
         }
+
+        int time_status = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &eval_params->context_info->cpu_time_reference);
+        assert(time_status == 0); // can only hit on EOVERFLOW (which shouldn't happen) and EINVAL (kernel too old; don't care right now)
+        eval_params->context_info->cpu_nanos.store(0L, std::memory_order_relaxed);
 
         maybe_value = parsed_script.ToLocalChecked()->Run(context);
     }
@@ -1691,6 +1698,47 @@ rb_heap_snapshot(VALUE self, VALUE file) {
     return Qtrue;
 }
 
+// 1 jiffie = 1 µs for now
+#define JIFFIES_PER_SECOND 1000000 // 1'000'000
+#define NANOSECONDS_PER_JIFFIE 1000 // 1'000
+
+static void
+v8_update_cpu_time(Isolate* isolate, ContextInfo* context_info) {
+    struct timespec now;
+    int time_status = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &now);
+    assert(time_status == 0); // can only hit on EOVERFLOW (which shouldn't happen) and EINVAL (kernel too old; don't care right now)
+
+    struct timespec delta = {
+        .tv_sec = now.tv_sec - context_info->cpu_time_reference.tv_sec,
+        .tv_nsec = now.tv_nsec - context_info->cpu_time_reference.tv_nsec, // this type is defined as `long` by POSIX, so negative values are fine here.
+    };
+
+    // lower from timespec to to a number of jiffies
+    unsigned long elapsed_time = delta.tv_sec * JIFFIES_PER_SECOND + delta.tv_nsec / NANOSECONDS_PER_JIFFIE;
+
+    context_info->cpu_time_reference = now;
+    (void) context_info->cpu_nanos.fetch_add(elapsed_time, std::memory_order_relaxed);
+}
+
+static void
+v8_update_cpu_time_callback(Isolate* isolate, void* ud) {
+    ContextInfo* context_info = reinterpret_cast<ContextInfo*>(ud);
+    v8_update_cpu_time(isolate, context_info);
+}
+
+static VALUE
+rb_context_update_cpu_time(VALUE self) {
+    ContextInfo* context_info;
+    Data_Get_Struct(self, ContextInfo, context_info);
+
+    unsigned long current_time = context_info->cpu_nanos.load(std::memory_order_relaxed);
+
+    Isolate* isolate = context_info->isolate_info->isolate;
+    isolate->RequestInterrupt(&v8_update_cpu_time_callback, reinterpret_cast<void*>(context_info));
+
+    return LONG2NUM(current_time);
+}
+
 static VALUE
 rb_context_stop(VALUE self) {
 
@@ -1923,6 +1971,7 @@ extern "C" {
         rb_define_private_method(rb_cContext, "call_unsafe", (VALUE(*)(...))&rb_context_call_unsafe, -1);
         rb_define_private_method(rb_cContext, "isolate_mutex", (VALUE(*)(...))&rb_context_isolate_mutex, 0);
         rb_define_private_method(rb_cContext, "init_unsafe",(VALUE(*)(...))&rb_context_init_unsafe, 2);
+        rb_define_private_method(rb_cContext, "update_cpu_time", (VALUE(*)(...))&rb_context_update_cpu_time, 0);
 
         rb_define_alloc_func(rb_cContext, allocate);
         rb_define_alloc_func(rb_cSnapshot, allocate_snapshot);

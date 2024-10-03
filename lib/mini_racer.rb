@@ -349,10 +349,15 @@ module MiniRacer
 
       t = Thread.new do
         begin
-          result = IO.select([rp],[],[],(@timeout/1000.0))
-          if !result
-            mutex.synchronize do
-              stop unless done
+          while true do
+            result = IO.select([rp],[],[],0.1)
+            break if result
+            cpu_time = update_cpu_time
+            # cpu time is in micros (e-6), timeout is in millis (e-3);
+            if cpu_time / 1000 >= @timeout
+              mutex.synchronize do
+                stop unless done
+              end
             end
           end
         rescue => e
