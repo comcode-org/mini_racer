@@ -350,7 +350,7 @@ module MiniRacer
       t = Thread.new do
         begin
           while true do
-            result = IO.select([rp],[],[],0.1)
+            result = IO.select([rp],[],[],0.1) # seconds
             break if result
             cpu_time = update_cpu_time
             # cpu time is in micros (e-6), timeout is in millis (e-3);
