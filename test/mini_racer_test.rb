@@ -116,6 +116,26 @@ class MiniRacerTest < Minitest::Test
     end
   end
 
+  def test_it_can_hit_cputime_limit_during_serialization
+    context = MiniRacer::Context.new(timeout: 30,cputime_limit: 20)
+
+    Timeout::timeout(0.025) do
+      assert_raises(MiniRacer::ScriptTerminatedError) do
+        context.eval 'var a = {get a(){ while(true); }}; a'
+      end
+    end
+  end
+
+  def test_it_can_limit_cputime
+    context = MiniRacer::Context.new(timeout: 20, cputime_limit: 2)
+    # our test should raise after the cputime_limit, but before our timeout
+    Timeout::timeout(0.010) do
+      assert_raises do
+        context.eval('while(true){}')
+      end
+    end
+  end
+
   def test_returns_javascript_function
     context = MiniRacer::Context.new
     assert_same MiniRacer::JavaScriptFunction, context.eval("var a = function(){}; a").class
@@ -639,7 +659,8 @@ raise FooError, "I like foos"
   end
 
   def test_timeout_in_ruby_land
-    context = MiniRacer::Context.new(timeout: 50)
+    # Our cpu limit should not be hit, because we are sleeping
+    context = MiniRacer::Context.new(timeout: 50, cputime_limit:2)
     context.attach('sleep', proc{ sleep 0.1 })
     assert_raises(MiniRacer::ScriptTerminatedError) do
       context.eval('sleep(); "hi";')
