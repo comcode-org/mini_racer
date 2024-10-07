@@ -342,21 +342,34 @@ module MiniRacer
     end
 
     def timeout(&blk)
-      return blk.call unless @timeout # !!TODO THIS PR need to figure out what this if statement is when adding in cputime_limit
+      return blk.call unless @timeout or @cputime_limit
 
       mutex = Mutex.new
       done = false
 
       rp,wp = IO.pipe
 
+      start_monotonic_time = Process.clock_gettime Process::CLOCK_MONOTONIC, :millisecond
+      thread_clock = nil
+      if @cputime_limit then
+        # this call might fail, so condition on actually needing it
+        thread_clock = current_thread_clock
+        start_cpu_time = Process.clock_gettime thread_clock, :millisecond
+      end
+
       t = Thread.new do
         begin
           while true do
-            result = IO.select([rp],[],[],0.1) # seconds
-            break if result
-            cpu_time = update_cpu_time
-            # cpu time is in micros (e-6), timeout is in millis (e-3);
-            if cpu_time / 1000 >= @timeout
+            result = IO.select([rp],[],[],0.1) # seconds # TODO: Adjust this interval depending on the remaining wall/cpu clock; required for tests
+            break if result # operation completed
+            current_monotonic_time = Process.clock_gettime Process::CLOCK_MONOTONIC, :millisecond
+            if thread_clock then
+              current_cpu_time = Process.clock_gettime thread_clock, :millisecond
+            end
+            if
+              (@timeout and current_monotonic_time - start_monotonic_time >= @timeout) or
+              (@cputime_limit and current_cpu_time - start_cpu_time >= @cputime_limit)
+            then
               mutex.synchronize do
                 stop unless done
               end
