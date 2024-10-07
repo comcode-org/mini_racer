@@ -360,7 +360,7 @@ module MiniRacer
       t = Thread.new do
         begin
           while true do
-            result = IO.select([rp],[],[],0.1) # seconds # TODO: Adjust this interval depending on the remaining wall/cpu clock; required for tests
+            result = IO.select([rp],[],[],0.05) # seconds # TODO: Adjust this interval depending on the remaining wall/cpu clock; required for tests
             break if result # operation completed
             current_monotonic_time = Process.clock_gettime Process::CLOCK_MONOTONIC, :millisecond
             if thread_clock then

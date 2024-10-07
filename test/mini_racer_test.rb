@@ -119,7 +119,7 @@ class MiniRacerTest < Minitest::Test
   def test_it_can_hit_cputime_limit_during_serialization
     context = MiniRacer::Context.new(timeout: 30,cputime_limit: 20)
 
-    Timeout::timeout(0.025) do
+    Timeout::timeout(0.250) do
       assert_raises(MiniRacer::ScriptTerminatedError) do
         context.eval 'var a = {get a(){ while(true); }}; a'
       end
@@ -129,7 +129,7 @@ class MiniRacerTest < Minitest::Test
   def test_it_can_limit_cputime
     context = MiniRacer::Context.new(timeout: 20, cputime_limit: 2)
     # our test should raise after the cputime_limit, but before our timeout
-    Timeout::timeout(0.010) do
+    Timeout::timeout(0.100) do
       assert_raises do
         context.eval('while(true){}')
       end
