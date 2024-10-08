@@ -8,8 +8,9 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - '10.15'
-          - '11.0'
+          - '12'
+          - '13'
+          - 'latest'
         platform:
           - x86_64
           # arm64
