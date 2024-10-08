@@ -150,7 +150,6 @@ module MiniRacer
 
       @functions = {}
       @timeout = nil
-      @cputime_limit = nil
       @max_memory = nil
       @current_exception = nil
       @timeout = timeout
