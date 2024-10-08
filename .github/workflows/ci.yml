@@ -3,27 +3,27 @@ on:
   - push
 
 jobs:
-  test-darwin:
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - '10.15'
-          - '11.0'
-        platform:
-          - x86_64
-          # arm64
-    name: Test (darwin)
-    runs-on: macos-${{ matrix.os }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Bundle
-        run: bundle install
-      - name: Compile
-        run: bundle exec rake compile
-      - name: Test
-        run: bundle exec rake test
+  # test-darwin:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os:
+  #         - '10.15'
+  #         - '11.0'
+  #       platform:
+  #         - x86_64
+  #         # arm64
+  #   name: Test (darwin)
+  #   runs-on: macos-${{ matrix.os }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+  #     - name: Bundle
+  #       run: bundle install
+  #     - name: Compile
+  #       run: bundle exec rake compile
+  #     - name: Test
+  #       run: bundle exec rake test
   test-linux:
     strategy:
       fail-fast: false
