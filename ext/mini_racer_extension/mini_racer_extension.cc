@@ -99,8 +99,6 @@ typedef struct {
     Persistent<Context>* context;
     Global<Object> ruby_error_prototype;
     Global<Function> capture_stack_trace;
-    std::atomic<unsigned long> cpu_nanos;
-    struct timespec cpu_time_reference;
 } ContextInfo;
 
 typedef struct {
@@ -507,10 +505,6 @@ nogvl_context_eval(void* arg) {
         if (eval_params->marshal_stackdepth > 0) {
             StackCounter::SetMax(isolate, eval_params->marshal_stackdepth);
         }
-
-        int time_status = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &eval_params->context_info->cpu_time_reference);
-        assert(time_status == 0); // can only hit on EOVERFLOW (which shouldn't happen) and EINVAL (kernel too old; don't care right now)
-        eval_params->context_info->cpu_nanos.store(0L, std::memory_order_relaxed);
 
         maybe_value = parsed_script.ToLocalChecked()->Run(context);
     }
